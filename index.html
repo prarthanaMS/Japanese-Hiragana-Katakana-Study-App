@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Japanese Kana Study App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1e3a8a, #4D4141);
+            color: white;
+            min-height: 100vh;
+            user-select: none;
+        }
+
+        .container {
+            max-width: 100%;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(77, 65, 65, 0.3);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            padding: 12px 20px;
+            background: rgba(30, 58, 138, 0.8);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            border: 2px solid transparent;
+        }
+
+        .nav-btn:hover {
+            background: rgba(77, 65, 65, 0.8);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .nav-btn.active {
+            background: #4D4141;
+            border-color: rgba(255,255,255,0.3);
+        }
+
+        .section {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .kana-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .kana-card {
+            aspect-ratio: 1;
+            background: rgba(77, 65, 65, 0.4);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            backdrop-filter: blur(10px);
+        }
+
+        .kana-card:hover {
+            background: rgba(30, 58, 138, 0.6);
+            transform: scale(1.05);
+            border-color: rgba(255,255,255,0.3);
+        }
+
+        .kana-character {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .kana-romaji {
+            font-size: 0.8em;
+            opacity: 0.8;
+        }
+
+        .quiz-container {
+            max-width: 500px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .quiz-question {
+            background: rgba(77, 65, 65, 0.4);
+            padding: 40px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .quiz-character {
+            font-size: 4em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .quiz-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .quiz-option {
+            padding: 15px;
+            background: rgba(30, 58, 138, 0.6);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+        }
+
+        .quiz-option:hover {
+            background: rgba(77, 65, 65, 0.8);
+            transform: translateY(-2px);
+        }
+
+        .quiz-option.correct {
+            background: #10B981;
+        }
+
+        .quiz-option.incorrect {
+            background: #EF4444;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: rgba(77, 65, 65, 0.3);
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #1e3a8a, #4D4141);
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            background: rgba(77, 65, 65, 0.4);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            min-width: 120px;
+            margin: 5px;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #60A5FA;
+        }
+
+        .practice-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            padding: 12px 24px;
+            background: rgba(30, 58, 138, 0.8);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background: rgba(77, 65, 65, 0.8);
+            transform: translateY(-2px);
+        }
+
+        .control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .typing-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.5em;
+            text-align: center;
+            border: none;
+            border-radius: 12px;
+            background: rgba(77, 65, 65, 0.4);
+            color: white;
+            margin: 20px 0;
+            backdrop-filter: blur(10px);
+        }
+
+        .typing-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .feedback {
+            padding: 15px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 1.1em;
+        }
+
+        .feedback.correct {
+            background: rgba(16, 185, 129, 0.3);
+            color: #10B981;
+        }
+
+        .feedback.incorrect {
+            background: rgba(239, 68, 68, 0.3);
+            color: #EF4444;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .kana-grid {
+                grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+                gap: 10px;
+            }
+            
+            .quiz-character {
+                font-size: 3em;
+            }
+            
+            .navigation {
+                gap: 5px;
+            }
+            
+            .nav-btn {
+                padding: 10px 15px;
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>日本語 Kana Study</h1>
+            <p>Master Hiragana & Katakana</p>
+        </div>
+
+        <div class="navigation">
+            <button class="nav-btn active" onclick="showSection('hiragana')">Hiragana</button>
+            <button class="nav-btn" onclick="showSection('katakana')">Katakana</button>
+            <button class="nav-btn" onclick="showSection('quiz')">Quiz</button>
+            <button class="nav-btn" onclick="showSection('typing')">Typing</button>
+            <button class="nav-btn" onclick="showSection('stats')">Stats</button>
+        </div>
+
+        <!-- Hiragana Section -->
+        <div id="hiragana" class="section active">
+            <h2 style="text-align: center; margin-bottom: 20px;">ひらがな (Hiragana)</h2>
+            <div class="kana-grid" id="hiragana-grid"></div>
+        </div>
+
+        <!-- Katakana Section -->
+        <div id="katakana" class="section">
+            <h2 style="text-align: center; margin-bottom: 20px;">カタカナ (Katakana)</h2>
+            <div class="kana-grid" id="katakana-grid"></div>
+        </div>
+
+        <!-- Quiz Section -->
+        <div id="quiz" class="section">
+            <h2 style="text-align: center; margin-bottom: 20px;">Quiz Mode</h2>
+            <div class="practice-controls">
+                <button class="control-btn" onclick="startQuiz('hiragana')">Hiragana Quiz</button>
+                <button class="control-btn" onclick="startQuiz('katakana')">Katakana Quiz</button>
+                <button class="control-btn" onclick="startQuiz('mixed')">Mixed Quiz</button>
+            </div>
+            <div class="quiz-container" id="quiz-container"></div>
+        </div>
+
+        <!-- Typing Section -->
+        <div id="typing" class="section">
+            <h2 style="text-align: center; margin-bottom: 20px;">Typing Practice</h2>
+            <div class="practice-controls">
+                <button class="control-btn" onclick="startTyping('hiragana')">Hiragana Typing</button>
+                <button class="control-btn" onclick="startTyping('katakana')">Katakana Typing</button>
+            </div>
+            <div class="quiz-container" id="typing-container"></div>
+        </div>
+
+        <!-- Stats Section -->
+        <div id="stats" class="section">
+            <h2 style="text-align: center; margin-bottom: 20px;">Your Progress</h2>
+            <div class="progress-bar">
+                <div class="progress-fill" id="overall-progress" style="width: 0%"></div>
+            </div>
+            <div class="stats" id="stats-container"></div>
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="control-btn" onclick="resetProgress()">Reset Progress</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Kana data
+        const hiraganaData = [
+            {char: 'あ', romaji: 'a'}, {char: 'い', romaji: 'i'}, {char: 'う', romaji: 'u'}, {char: 'え', romaji: 'e'}, {char: 'お', romaji: 'o'},
+            {char: 'か', romaji: 'ka'}, {char: 'き', romaji: 'ki'}, {char: 'く', romaji: 'ku'}, {char: 'け', romaji: 'ke'}, {char: 'こ', romaji: 'ko'},
+            {char: 'さ', romaji: 'sa'}, {char: 'し', romaji: 'shi'}, {char: 'す', romaji: 'su'}, {char: 'せ', romaji: 'se'}, {char: 'そ', romaji: 'so'},
+            {char: 'た', romaji: 'ta'}, {char: 'ち', romaji: 'chi'}, {char: 'つ', romaji: 'tsu'}, {char: 'て', romaji: 'te'}, {char: 'と', romaji: 'to'},
+            {char: 'な', romaji: 'na'}, {char: 'に', romaji: 'ni'}, {char: 'ぬ', romaji: 'nu'}, {char: 'ね', romaji: 'ne'}, {char: 'の', romaji: 'no'},
+            {char: 'は', romaji: 'ha'}, {char: 'ひ', romaji: 'hi'}, {char: 'ふ', romaji: 'fu'}, {char: 'へ', romaji: 'he'}, {char: 'ほ', romaji: 'ho'},
+            {char: 'ま', romaji: 'ma'}, {char: 'み', romaji: 'mi'}, {char: 'む', romaji: 'mu'}, {char: 'め', romaji: 'me'}, {char: 'も', romaji: 'mo'},
+            {char: 'や', romaji: 'ya'}, {char: 'ゆ', romaji: 'yu'}, {char: 'よ', romaji: 'yo'},
+            {char: 'ら', romaji: 'ra'}, {char: 'り', romaji: 'ri'}, {char: 'る', romaji: 'ru'}, {char: 'れ', romaji: 're'}, {char: 'ろ', romaji: 'ro'},
+            {char: 'わ', romaji: 'wa'}, {char: 'を', romaji: 'wo'}, {char: 'ん', romaji: 'n'}
+        ];
+
+        const katakanaData = [
+            {char: 'ア', romaji: 'a'}, {char: 'イ', romaji: 'i'}, {char: 'ウ', romaji: 'u'}, {char: 'エ', romaji: 'e'}, {char: 'オ', romaji: 'o'},
+            {char: 'カ', romaji: 'ka'}, {char: 'キ', romaji: 'ki'}, {char: 'ク', romaji: 'ku'}, {char: 'ケ', romaji: 'ke'}, {char: 'コ', romaji: 'ko'},
+            {char: 'サ', romaji: 'sa'}, {char: 'シ', romaji: 'shi'}, {char: 'ス', romaji: 'su'}, {char: 'セ', romaji: 'se'}, {char: 'ソ', romaji: 'so'},
+            {char: 'タ', romaji: 'ta'}, {char: 'チ', romaji: 'chi'}, {char: 'ツ', romaji: 'tsu'}, {char: 'テ', romaji: 'te'}, {char: 'ト', romaji: 'to'},
+            {char: 'ナ', romaji: 'na'}, {char: 'ニ', romaji: 'ni'}, {char: 'ヌ', romaji: 'nu'}, {char: 'ネ', romaji: 'ne'}, {char: 'ノ', romaji: 'no'},
+            {char: 'ハ', romaji: 'ha'}, {char: 'ヒ', romaji: 'hi'}, {char: 'フ', romaji: 'fu'}, {char: 'ヘ', romaji: 'he'}, {char: 'ホ', romaji: 'ho'},
+            {char: 'マ', romaji: 'ma'}, {char: 'ミ', romaji: 'mi'}, {char: 'ム', romaji: 'mu'}, {char: 'メ', romaji: 'me'}, {char: 'モ', romaji: 'mo'},
+            {char: 'ヤ', romaji: 'ya'}, {char: 'ユ', romaji: 'yu'}, {char: 'ヨ', romaji: 'yo'},
+            {char: 'ラ', romaji: 'ra'}, {char: 'リ', romaji: 'ri'}, {char: 'ル', romaji: 'ru'}, {char: 'レ', romaji: 're'}, {char: 'ロ', romaji: 'ro'},
+            {char: 'ワ', romaji: 'wa'}, {char: 'ヲ', romaji: 'wo'}, {char: 'ン', romaji: 'n'}
+        ];
+
+        // App state
+        let currentQuiz = null;
+        let currentTyping = null;
+        let stats = JSON.parse(localStorage.getItem('kanaStats') || '{"correct": 0, "incorrect": 0, "streak": 0, "bestStreak": 0}');
+
+        // Initialize app
+        function init() {
+            renderKanaGrid('hiragana', hiraganaData);
+            renderKanaGrid('katakana', katakanaData);
+            updateStats();
+        }
+
+        // Navigation
+        function showSection(section) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(section).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Render kana grids
+        function renderKanaGrid(type, data) {
+            const grid = document.getElementById(`${type}-grid`);
+            grid.innerHTML = '';
+            
+            data.forEach(kana => {
+                const card = document.createElement('div');
+                card.className = 'kana-card';
+                card.innerHTML = `
+                    <div class="kana-character">${kana.char}</div>
+                    <div class="kana-romaji">${kana.romaji}</div>
+                `;
+                card.addEventListener('click', () => pronounceKana(kana.romaji));
+                grid.appendChild(card);
+            });
+        }
+
+        // Audio pronunciation (visual feedback since we can't play actual audio)
+        function pronounceKana(romaji) {
+            // Create visual feedback
+            const feedback = document.createElement('div');
+            feedback.textContent = romaji.toUpperCase();
+            feedback.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(16, 185, 129, 0.9);
+                color: white;
+                padding: 20px 40px;
+                border-radius: 10px;
+                font-size: 2em;
+                font-weight: bold;
+                z-index: 1000;
+                animation: fadeInOut 1s ease-in-out;
+            `;
+            
+            document.body.appendChild(feedback);
+            setTimeout(() => feedback.remove(), 1000);
+        }
+
+        // Quiz functionality
+        function startQuiz(type) {
+            let data;
+            if (type === 'hiragana') data = hiraganaData;
+            else if (type === 'katakana') data = katakanaData;
+            else data = [...hiraganaData, ...katakanaData];
+            
+            currentQuiz = {
+                data: data,
+                currentIndex: 0,
+                score: 0,
+                questions: shuffleArray([...data]).slice(0, 10)
+            };
+            
+            renderQuizQuestion();
+        }
+
+        function renderQuizQuestion() {
+            const container = document.getElementById('quiz-container');
+            const question = currentQuiz.questions[currentQuiz.currentIndex];
+            
+            if (!question) {
+                showQuizResults();
+                return;
+            }
+            
+            const options = generateQuizOptions(question);
+            
+            container.innerHTML = `
+                <div class="quiz-question">
+                    <div class="quiz-character">${question.char}</div>
+                    <p>Question ${currentQuiz.currentIndex + 1} of ${currentQuiz.questions.length}</p>
+                </div>
+                <div class="quiz-options">
+                    ${options.map((option, index) => 
+                        `<button class="quiz-option" onclick="selectAnswer('${option}', '${question.romaji}', ${index})">${option}</button>`
+                    ).join('')}
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${(currentQuiz.currentIndex / currentQuiz.questions.length) * 100}%"></div>
+                </div>
+            `;
+        }
+
+        function generateQuizOptions(correct) {
+            const allOptions = [...hiraganaData, ...katakanaData];
+            const incorrectOptions = allOptions
+                .filter(item => item.romaji !== correct.romaji)
+                .map(item => item.romaji)
+                .slice(0, 3);
+            
+            const options = [correct.romaji, ...incorrectOptions];
+            return shuffleArray(options);
+        }
+
+        function selectAnswer(selected, correct, buttonIndex) {
+            const buttons = document.querySelectorAll('.quiz-option');
+            
+            if (selected === correct) {
+                buttons[buttonIndex].classList.add('correct');
+                currentQuiz.score++;
+                updateStatsCorrect();
+            } else {
+                buttons[buttonIndex].classList.add('incorrect');
+                buttons.forEach((btn, i) => {
+                    if (btn.textContent === correct) {
+                        btn.classList.add('correct');
+                    }
+                });
+                updateStatsIncorrect();
+            }
+            
+            buttons.forEach(btn => btn.disabled = true);
+            
+            setTimeout(() => {
+                currentQuiz.currentIndex++;
+                renderQuizQuestion();
+            }, 1500);
+        }
+
+        function showQuizResults() {
+            const container = document.getElementById('quiz-container');
+            const percentage = Math.round((currentQuiz.score / currentQuiz.questions.length) * 100);
+            
+            container.innerHTML = `
+                <div class="quiz-question">
+                    <h3>Quiz Complete!</h3>
+                    <div class="stat-value">${percentage}%</div>
+                    <p>You got ${currentQuiz.score} out of ${currentQuiz.questions.length} correct!</p>
+                    <div style="margin-top: 20px;">
+                        <button class="control-btn" onclick="startQuiz('${currentQuiz.type}')">Try Again</button>
+                        <button class="control-btn" onclick="document.getElementById('quiz-container').innerHTML = ''">Back</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Typing practice
+        function startTyping(type) {
+            const data = type === 'hiragana' ? hiraganaData : katakanaData;
+            currentTyping = {
+                data: shuffleArray([...data]),
+                currentIndex: 0,
+                score: 0
+            };
+            
+            renderTypingQuestion();
+        }
+
+        function renderTypingQuestion() {
+            const container = document.getElementById('typing-container');
+            const question = currentTyping.data[currentTyping.currentIndex];
+            
+            if (!question) {
+                showTypingResults();
+                return;
+            }
+            
+            container.innerHTML = `
+                <div class="quiz-question">
+                    <div class="quiz-character">${question.char}</div>
+                    <p>Type the romaji for this character</p>
+                </div>
+                <input type="text" class="typing-input" id="typing-input" placeholder="Type here..." autocomplete="off">
+                <div id="typing-feedback"></div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${(currentTyping.currentIndex / currentTyping.data.length) * 100}%"></div>
+                </div>
+            `;
+            
+            const input = document.getElementById('typing-input');
+            input.focus();
+            input.addEventListener('keypress', handleTypingInput);
+        }
+
+        function handleTypingInput(e) {
+            if (e.key === 'Enter') {
+                const input = e.target;
+                const answer = input.value.toLowerCase().trim();
+                const correct = currentTyping.data[currentTyping.currentIndex].romaji;
+                const feedback = document.getElementById('typing-feedback');
+                
+                if (answer === correct) {
+                    feedback.innerHTML = '<div class="feedback correct">Correct! よくできました！</div>';
+                    currentTyping.score++;
+                    updateStatsCorrect();
+                } else {
+                    feedback.innerHTML = `<div class="feedback incorrect">Incorrect. The answer is "${correct}"</div>`;
+                    updateStatsIncorrect();
+                }
+                
+                input.disabled = true;
+                
+                setTimeout(() => {
+                    currentTyping.currentIndex++;
+                    renderTypingQuestion();
+                }, 1500);
+            }
+        }
+
+        function showTypingResults() {
+            const container = document.getElementById('typing-container');
+            const percentage = Math.round((currentTyping.score / currentTyping.data.length) * 100);
+            
+            container.innerHTML = `
+                <div class="quiz-question">
+                    <h3>Typing Complete!</h3>
+                    <div class="stat-value">${percentage}%</div>
+                    <p>You got ${currentTyping.score} out of ${currentTyping.data.length} correct!</p>
+                    <div style="margin-top: 20px;">
+                        <button class="control-btn" onclick="startTyping('hiragana')">Hiragana Again</button>
+                        <button class="control-btn" onclick="startTyping('katakana')">Katakana Again</button>
+                        <button class="control-btn" onclick="document.getElementById('typing-container').innerHTML = ''">Back</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Statistics
+        function updateStatsCorrect() {
+            stats.correct++;
+            stats.streak++;
+            if (stats.streak > stats.bestStreak) {
+                stats.bestStreak = stats.streak;
+            }
+            saveStats();
+            updateStats();
+        }
+
+        function updateStatsIncorrect() {
+            stats.incorrect++;
+            stats.streak = 0;
+            saveStats();
+            updateStats();
+        }
+
+        function updateStats() {
+            const total = stats.correct + stats.incorrect;
+            const accuracy = total > 0 ? Math.round((stats.correct / total) * 100) : 0;
+            
+            document.getElementById('overall-progress').style.width = `${Math.min(accuracy, 100)}%`;
+            
+            const container = document.getElementById('stats-container');
+            container.innerHTML = `
+                <div class="stat-item">
+                    <div class="stat-value">${stats.correct}</div>
+                    <div>Correct</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${stats.incorrect}</div>
+                    <div>Incorrect</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${accuracy}%</div>
+                    <div>Accuracy</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${stats.streak}</div>
+                    <div>Current Streak</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${stats.bestStreak}</div>
+                    <div>Best Streak</div>
+                </div>
+            `;
+        }
+
+        function saveStats() {
+            localStorage.setItem('kanaStats', JSON.stringify(stats));
+        }
+
+        function resetProgress() {
+            if (confirm('Are you sure you want to reset all progress?')) {
+                stats = {correct: 0, incorrect: 0, streak: 0, bestStreak: 0};
+                saveStats();
+                updateStats();
+            }
+        }
+
+        // Utility functions
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        // Add CSS animation for fadeInOut
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeInOut {
+                0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                50% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialize app
+        init();
+    </script>
+</body>
+</html>
